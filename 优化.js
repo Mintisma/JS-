@@ -1,8 +1,8 @@
 function onOpen(e) {
    SpreadsheetApp.getUi()
        .createMenu('广告数据优化')
-       .addItem('CPA_calculation', 'CPA_calculation')
-       .addItem('CPA_plot', 'createPivotTable')
+       .addItem('CPS_calculate', 'CPS_calculate')
+       .addItem('CPO_plot', 'createPivotTable')
        .addItem('删除重复项', 'writeArrayToColumn')
        .addItem('I类', 'cat1Arr')
        .addItem('非I类', 'non1CatArr')
@@ -12,19 +12,33 @@ function onOpen(e) {
        .addToUi();
  }
 
-function CPA_calculation() {
+function CPS_calculate() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getActiveSheet();
   var spreadsheet = SpreadsheetApp.getActive();
   var input = Browser.inputBox('search terms');
-
+  var included = input.split(" ")[0];
+  var excluded = input.split(" ")[1];
+  
   var width = sheet.getLastColumn();
   var length = sheet.getLastRow();
   var range = 'A1:H' + length;
-
+  
   // filter
-  var data = sheet.getDataRange().getValues();
-  var filter_data = data.filter(function (d){return d[4].indexOf(input) !==-1});
+  var filter_data = sheet.getDataRange().getValues();
+  
+  var included_list = included.split(',');
+  for (var j=0;j<included_list.length;j++){
+    filter_data = filter_data.filter(function (d){return d[4].indexOf(included_list[j]) !==-1});
+  }
+  
+  if (excluded){
+    var excluded_list = excluded.split(',');
+    for (var i=0;i<excluded_list.length;i++){
+      filter_data = filter_data.filter(function (d){return d[4].indexOf(excluded_list[i]) ===-1});
+    }
+  }
+  
   var spend_sum = 0;
   var order_sum = 0;
   var clicks_sum = 0;
@@ -35,31 +49,34 @@ function CPA_calculation() {
   }
   var CPO = spend_sum / order_sum;
   var CR = order_sum / clicks_sum;
-
+  
   // CPO expression
-  sheet.getRange('J1').setValue('contains');
-  sheet.getRange('K1').setValue('CPA');
-  sheet.getRange('L1').setValue('clicks_sum');
-  sheet.getRange('M1').setValue('CR');
-  sheet.getRange(1, 10, 1, 4).setBackground('Yellow').setFontWeight("bold");
-
-  var Jvals = sheet.getRange("J1:J").getValues();
-  var Jlast = Jvals.filter(String).length + 1;
-  var Jcell = 'J' + Jlast;
-  var Kcell = 'K' + Jlast;
-  var Lcell = 'L' + Jlast;
-  var Mcell = 'M' + Jlast;
-  var Jcellnew = 'J' + (Jlast + 1);
-
-  sheet.getRange(Jcell).setValue(input)
-  sheet.getRange(Kcell).setValue(CPO);
-  sheet.getRange(Lcell).setValue(clicks_sum);
-  sheet.getRange(Mcell).setValue(CR);
-  sheet.getRange('K:K').activate();
+  sheet.getRange('K1').setValue('contains');
+  sheet.getRange('L1').setValue('CPS');
+  sheet.getRange('M1').setValue('clicks_sum');
+  sheet.getRange('N1').setValue('CR');
+  sheet.getRange('O1').setValue('excluded');
+  sheet.getRange(1, 11, 1, 5).setBackground('Yellow').setFontWeight("bold");
+  
+  var Kvals = sheet.getRange("K1:K").getValues();
+  var Klast = Kvals.filter(String).length + 1;
+  var Kcell = 'K' + Klast;
+  var Lcell = 'L' + Klast;
+  var Mcell = 'M' + Klast;
+  var Ncell = 'N' + Klast;
+  var Ocell = 'O' + Klast;
+  var Kcellnew = 'K' + (Klast + 1);
+  
+  sheet.getRange(Kcell).setValue(included)
+  sheet.getRange(Lcell).setValue(CPO);
+  sheet.getRange(Mcell).setValue(clicks_sum);
+  sheet.getRange(Ncell).setValue(CR);
+  sheet.getRange(Ocell).setValue(excluded);
+  sheet.getRange('L:L').activate();
   sheet.getActiveRangeList().setNumberFormat('#,##0.00')
-  sheet.getRange('M:M').activate();
+  sheet.getRange('N:N').activate();
   sheet.getActiveRangeList().setNumberFormat('#,##0.00%')
-  sheet.getRange(Jcellnew).activate();
+  sheet.getRange(Kcellnew).activate();
 };
 
 function data_clean(){
@@ -148,22 +165,22 @@ function createPivotTable() {
   // The name of the sheet containing the data you want to put in a table.
   var sheetName = "Data";
   var sheetId = sheet.getSheetId();
-
+  
   var pivotTableParams = {};
-
+  
   // The source indicates the range of data you want to put in the table.
   // optional arguments: startRowIndex, startColumnIndex, endRowIndex, endColumnIndex
   pivotTableParams.source = {
    sheetId: sheetId
   };
-
+  
   // Group rows, the 'sourceColumnOffset' corresponds to the column number in the source range
   // eg: 0 to group by the first column
   pivotTableParams.rows = [{
     sourceColumnOffset: 2,
     sortOrder: "ASCENDING"
   }];
-
+  
   // Defines how a value in a pivot table should be calculated.
   pivotTableParams.values = [{
     summarizeFunction: "SUM",
@@ -176,14 +193,14 @@ function createPivotTable() {
     sourceColumnOffset: 7,
   }
   ];
-
+    
   // Create a new sheet which will contain our Pivot Table
   if (ss.getSheetByName('plot')) {
     ss.deleteSheet(ss.getSheetByName('plot'));
   };
   var pivotTableSheet = ss.insertSheet('plot');
   var pivotTableSheetId = pivotTableSheet.getSheetId();
-
+  
   // Add Pivot Table to new sheet
   // Meaning we send an 'updateCells' request to the Sheets API
   // Specifying via 'start' the sheet where we want to place our Pivot Table
@@ -205,7 +222,7 @@ function createPivotTable() {
   };
 
   Sheets.Spreadsheets.batchUpdate({'requests': [request]}, ss.getId());
-  ss.getRange('E1').setValue('CPA');
+  ss.getRange('E1').setValue('CPO');
   ss.getRange('E2').activate().setFormula('=if(D2>0,C2/D2,0)');
   ss.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
   ss.getRange('E:E').setNumberFormat('#,##0.00');
@@ -219,7 +236,7 @@ function scatter_plot() {
   var data = spreadsheet.getSheetByName('Data');
   var row = pivot.getLastRow();
   var max_cpo = pivot.getRange(row+1, 5).setFormula('=max(E2:E' + row + ')').getValue();
-
+  
   chart = pivot.newChart()
   .asScatterChart()
   .addRange(spreadsheet.getRange('plot!B1:B' + row))
@@ -233,13 +250,13 @@ function scatter_plot() {
   .setOption('curveType', 'none')
   .setOption('legend.position', 'right')
   .setOption('domainAxis.direction', 1)
-  .setOption('title', 'CPA distribution')
+  .setOption('title', 'CPS distribution')
   .setOption('treatLabelsAsText', false)
   .setXAxisTitle('Clicks')
   .setOption('series.0.hasAnnotations', true)
   .setOption('series.0.dataLabel', 'custom')
   .setOption('series.0.pointSize', 7)
-  .setOption('series.0.labelInLegend', 'CPA')
+  .setOption('series.0.labelInLegend', 'CPS')
   .setOption('vAxes.0.viewWindow.max', max_cpo * 1.2)
   .setPosition(1, 1, 57, 104)
   .build();
@@ -258,7 +275,7 @@ function setFilter() {
       arr_result.push(arr[i][0]);
     }
   }
-  return arr_result;
+  return arr_result; 
 }
 
 function removeDuplicateUsingFilter(){
@@ -267,7 +284,7 @@ function removeDuplicateUsingFilter(){
   var unique_array = arr.filter(function(elem, index, self) {
     return index == self.indexOf(elem);
   });
-  return unique_array
+  return unique_array 
 }
 
 function writeArrayToColumn() {
@@ -307,20 +324,20 @@ function cat1Arr() {
   var arr1 = cat1Contains();
   var sheet = SpreadsheetApp.getActiveSheet();
   var arrCat1 = [['start']];
-
+  
   sheet.getRange('C1').setValue('I类');
   sheet.getRange('C1').setFontWeight('bold');
   sheet.getRange('C1').setBackground('yellow');
-
+  
   sheet.getRange('B2').activate();
   // arrND is arr-non-duplicate
   var arrND = sheet.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).getValues();
   arrND.sort();
-
+  
   //for (var i=0; i<arr1.length; i++){
     //arrCat1 = arrND.filter(function(item) { return (item[0].indexOf(arr1[i][0]) != -1)})
   //}
-
+  
   for (var i=0; i<arrND.length; i++){
     for (var j=0; j<arr1.length; j++){
       if (arrND[i][0].indexOf(arr1[j][0]) !== -1 && arrCat1[arrCat1.length-1][0] !== arrND[i][0]){
@@ -328,7 +345,7 @@ function cat1Arr() {
       }
     }
   }
-
+  
   arrCat1.shift();
   // paste
   var range = sheet.getRange(2, 3, arrCat1.length);
@@ -341,7 +358,7 @@ function non1CatArr(){
   var sheet = SpreadsheetApp.getActiveSheet();
   var arrND = cat1Arr();
   var arrCat1 = cat1Contains()
-
+  
   sheet.getRange('D1').setValue('非I类');
   sheet.getRange('D1').setFontWeight('bold');
   sheet.getRange('D1').setBackground('yellow');
@@ -349,27 +366,27 @@ function non1CatArr(){
   for (var i=0; i<arrCat1.length; i++){
     arrND = arrND.filter(function(item) { return item[0].indexOf(arrCat1[i][0]) == -1 })
   }
-
+  
   var range = sheet.getRange(2, 4, arrND.length);
   range.setValues(arrND);
   return arrND
 }
-
+   
 
 function cat2Arr(){
   // II类词，非III类词
   var sheet = SpreadsheetApp.getActiveSheet();
   var arr3 = cat3Contains();
   var arr = non1CatArr();
-
+  
   sheet.getRange('E1').setValue('II类');
   sheet.getRange('E1').setFontWeight('bold');
   sheet.getRange('E1').setBackground('yellow');
-
+  
   for (var i=0; i<arr3.length; i++){
     arr = arr.filter(function(item) { return item[0].indexOf(arr3[i][0]) == -1 })
   }
-
+  
   // paste value
   var range = sheet.getRange(2, 5, arr.length);
   range.setValues(arr);
@@ -381,18 +398,18 @@ function cat3Arr(){
   var arr3 = cat3Contains();
   var arr = non1CatArr();
   var arrNew = [['start']];
-
+  
   /*
   for (var i=0; i<arr3.length; i++){
     arr = arr.filter(function(item) { return item[0].indexOf(arr3[i][0]) != -1 })
   }
   Logger.log(arr);
   */
-
+  
   sheet.getRange('F1').setValue('III类');
   sheet.getRange('F1').setFontWeight('bold');
   sheet.getRange('F1').setBackground('yellow');
-
+  
   for (var i=0; i<arr.length; i++){
     for (var j=0; j<arr3.length; j++){
       if (arr[i][0].indexOf(arr3[j][0]) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
