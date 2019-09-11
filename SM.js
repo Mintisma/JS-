@@ -38,7 +38,7 @@ function onOpen(e) {
   var range_campaign = 'A3:A' + rowCount;
   var range_adGroup = 'B3:B' + rowCount;
   var range_matchType = 'F' + Flast + ':F' + rowCount;
-  var range_enable = 'E3:E' + rowCount;
+  var range_enable = 'E2:E' + rowCount;
   var range_bid = 'D' + Dlast + ':D' + rowCount;
   var range_bid_type = 'G2:G' + rowCount;
   
