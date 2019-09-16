@@ -364,7 +364,7 @@ function non1CatArr(){
   sheet.getRange('D1').setBackground('yellow');
 
   for (var i=0; i<arrCat1.length; i++){
-    arrND = arrND.filter(function(item) { return item[0].indexOf(arrCat1[i][0]) == -1 })
+    arrND = arrND.filter(function(item) { return item[0].indexOf(arrCat1[i][0]) == -1 });
   }
   
   var range = sheet.getRange(2, 4, arrND.length);
@@ -376,8 +376,12 @@ function non1CatArr(){
 function cat2Arr(){
   // II类词，非III类词
   var sheet = SpreadsheetApp.getActiveSheet();
-  var arr3 = cat3Contains();
+  sheet.getRange('F2').activate();
+  // arrND is arr-non-duplicate
+  var arr3 = sheet.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).getValues();
+  // var arr3 = cat3Contains();
   var arr = non1CatArr();
+  var arrNew = [['start']];
   
   sheet.getRange('E1').setValue('II类');
   sheet.getRange('E1').setFontWeight('bold');
@@ -387,7 +391,7 @@ function cat2Arr(){
     arr = arr.filter(function(item) { return item[0].indexOf(arr3[i][0]) == -1 })
   }
   
-  // paste value
+    // paste value
   var range = sheet.getRange(2, 5, arr.length);
   range.setValues(arr);
 }
@@ -412,8 +416,19 @@ function cat3Arr(){
   
   for (var i=0; i<arr.length; i++){
     for (var j=0; j<arr3.length; j++){
-      if (arr[i][0].indexOf(arr3[j][0]) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
-        arrNew.push(arr[i]);
+      var input = arr3[j][0];
+      if (input.indexOf(',') !== -1){
+        var included_list = input.split(',');
+        var keyword_1 = included_list[0];
+        var keyword_2 = included_list[1];
+        if (arr[i][0].indexOf(keyword_1) !== -1 && arr[i][0].indexOf(keyword_2) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
+          arrNew.push(arr[i]);
+        }
+      }
+      else{
+        if (arr[i][0].indexOf(arr3[j][0]) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
+          arrNew.push(arr[i]);
+        }
       }
     }
   }
