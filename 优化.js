@@ -8,7 +8,7 @@ function onOpen(e) {
        .addItem('非I类', 'non1CatArr')
        .addItem('II类', 'cat2Arr')
        .addItem('III类', 'cat3Arr')
-       .addItem('data_clean', 'data_clean')
+       .addItem('other类', 'catOther')
        .addToUi();
  }
 
@@ -380,6 +380,9 @@ function cat2Arr(){
   // arrND is arr-non-duplicate
   var arr3 = sheet.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).getValues();
   // var arr3 = cat3Contains();
+  sheet.getRange('L2').activate();
+  var arr2 = sheet.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).getValues();
+  
   var arr = non1CatArr();
   var arrNew = [['start']];
   
@@ -388,12 +391,21 @@ function cat2Arr(){
   sheet.getRange('E1').setBackground('yellow');
   
   for (var i=0; i<arr3.length; i++){
-    arr = arr.filter(function(item) { return item[0].indexOf(arr3[i][0]) == -1 })
+    arr = arr.filter(function(item) { return item[0].indexOf(arr3[i][0]) == -1 });
+  }
+  
+  for (var i=0; i<arr.length; i++){
+    for (var j=0; j<arr2.length; j++){
+      if (arr[i][0].indexOf(arr2[j][0]) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
+        arrNew.push(arr[i]);
+      }
+    }
   }
   
     // paste value
-  var range = sheet.getRange(2, 5, arr.length);
-  range.setValues(arr);
+  arrNew.shift();
+  var range = sheet.getRange(2, 5, arrNew.length);
+  range.setValues(arrNew);
 }
 
 function cat3Arr(){
@@ -437,4 +449,31 @@ function cat3Arr(){
   range.setValues(arrNew);
 }
 
+function catOther(){
+  // other类（非I类，非II类，非III类）
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var arr = non1CatArr();
+  var arrNew = [['start']];
+  
+  sheet.getRange('F2').activate();
+  // arrND is arr-non-duplicate
+  var arr3 = sheet.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).getValues();
 
+  sheet.getRange('E2').activate();
+  var arr2 = sheet.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).getValues();
+  
+  sheet.getRange('G1').setValue('其它类');
+  sheet.getRange('G1').setFontWeight('bold');
+  sheet.getRange('G1').setBackground('yellow');
+  
+  for (var i=0; i<arr2.length; i++){
+    arr = arr.filter(function(item) { return item[0].indexOf(arr2[i][0]) == -1 });
+  }
+  
+  for (var i=0; i<arr3.length; i++){
+    arr = arr.filter(function(item) { return item[0].indexOf(arr3[i][0]) == -1 });
+  }
+  
+  var range = sheet.getRange(2, 7, arr.length);
+  range.setValues(arr);
+}
