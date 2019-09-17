@@ -473,7 +473,12 @@ function catOther(){
   for (var i=0; i<arr3.length; i++){
     arr = arr.filter(function(item) { return item[0].indexOf(arr3[i][0]) == -1 });
   }
-  
-  var range = sheet.getRange(2, 7, arr.length);
-  range.setValues(arr);
+  try{
+    var range = sheet.getRange(2, 7, arr.length);
+    range.setValues(arr);
+  }
+  catch(e){
+    SpreadsheetApp.getUi().alert('其它类数据为空');
+  }
+
 }
