@@ -340,7 +340,7 @@ function cat1Arr() {
   
   for (var i=0; i<arrND.length; i++){
     for (var j=0; j<arr1.length; j++){
-      if (arrND[i][0].indexOf(arr1[j][0]) !== -1 && arrCat1[arrCat1.length-1][0] !== arrND[i][0]){
+      if (arrND[i][0].indexOf(arr1[j][0]) != -1 && arrCat1[arrCat1.length-1][0] != arrND[i][0]){
         arrCat1.push(arrND[i]);
       }
     }
@@ -396,7 +396,7 @@ function cat2Arr(){
   
   for (var i=0; i<arr.length; i++){
     for (var j=0; j<arr2.length; j++){
-      if (arr[i][0].indexOf(arr2[j][0]) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
+      if (arr[i][0].indexOf(arr2[j][0]) != -1 && arrNew[arrNew.length-1][0] != arr[i][0]){
         arrNew.push(arr[i]);
       }
     }
@@ -433,12 +433,12 @@ function cat3Arr(){
         var included_list = input.split(',');
         var keyword_1 = included_list[0];
         var keyword_2 = included_list[1];
-        if (arr[i][0].indexOf(keyword_1) !== -1 && arr[i][0].indexOf(keyword_2) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
+        if (arr[i][0].indexOf(keyword_1) != -1 && arr[i][0].indexOf(keyword_2) != -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
           arrNew.push(arr[i]);
         }
       }
       else{
-        if (arr[i][0].indexOf(arr3[j][0]) !== -1 && arrNew[arrNew.length-1][0] !== arr[i][0]){
+        if (arr[i][0].indexOf(arr3[j][0]) != -1 && arrNew[arrNew.length-1][0] != arr[i][0]){
           arrNew.push(arr[i]);
         }
       }
