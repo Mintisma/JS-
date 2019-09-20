@@ -289,18 +289,31 @@ function removeDuplicateUsingFilter(){
 
 function writeArrayToColumn() {
   // turn 1D array to 2D array
-  var input_column = Browser.inputBox('which column, please input integer.');
+  var keywords_length = Browser.inputBox('max keywords length, please input integer.');
+  var arrNew = [['start']];
   var Sheet = SpreadsheetApp.getActiveSheet();
-  var array = removeDuplicateUsingFilter()
+  var array = removeDuplicateUsingFilter();
   var arr = array.map(function (el) {return [el];});
-  var range = Sheet.getRange(2, input_column, arr.length);
+  
   // set values
-  if (input_column == 2){
-    Sheet.getRange('B1').setValue('nonDuplicate');
-    Sheet.getRange('B1').setFontWeight('bold');
-    Sheet.getRange('B1').setBackground('yellow');
-   }
-  range.setValues(arr);
+  Sheet.getRange('B1').setValue('nonDuplicate');
+  Sheet.getRange('B1').setFontWeight('bold');
+  Sheet.getRange('B1').setBackground('yellow');
+  
+  if (keywords_length){
+    for(var i=0; i<arr.length; i++){
+      if (arr[i][0].split(' ').length <= keywords_length){
+        arrNew.push(arr[i]);
+      }
+    }
+    arrNew.shift();
+    var range = Sheet.getRange(2, 2, arrNew.length);
+    range.setValues(arrNew);
+  }
+  else{
+    var range = Sheet.getRange(2, 2, arr.length);
+    range.setValues(arr);
+  }
 };
 
 function cat1Contains() {
