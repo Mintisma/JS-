@@ -2,15 +2,35 @@ function onOpen(e) {
    SpreadsheetApp.getUi()
        .createMenu('广告数据优化')
        .addItem('CPS_calculate', 'CPS_calculate')
-       .addItem('CPO_plot', 'createPivotTable')
+       .addItem('CVR_plot', 'createPT')
+       .addItem('scatter_plot', 'scatter_plot')
        .addItem('删除重复项', 'writeArrayToColumn')
        .addItem('I类', 'cat1Arr')
        .addItem('非I类', 'non1CatArr')
        .addItem('II类', 'cat2Arr')
        .addItem('III类', 'cat3Arr')
        .addItem('other类', 'catOther')
+       .addItem('fill_empty_cells', 'fill_empty_cells')
        .addToUi();
  }
+
+function fill_empty_cells() {
+    var ss = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var range = ss.getRange("F:H").offset(0, 0, ss.getDataRange().getNumRows());
+    range.setValues(range.getValues().map(
+      function (row) 
+        {return row.map(function (cell) {
+                return cell === '' ? 0 : cell;
+            });
+        }));
+    var range = ss.getRange("E:E").offset(0, 0, ss.getDataRange().getNumRows());
+    range.setValues(range.getValues().map(
+      function (row) 
+        {return row.map(function (cell) {
+                return cell === '' ? 'test' : cell;
+            });
+        }));
+}
 
 function CPS_calculate() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -159,7 +179,7 @@ function replaceInSheet(sheet, to_replace, replace_with) {
 }
 
 
-function createPivotTable() {
+function createPT() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Data');
   // The name of the sheet containing the data you want to put in a table.
@@ -177,7 +197,7 @@ function createPivotTable() {
   // Group rows, the 'sourceColumnOffset' corresponds to the column number in the source range
   // eg: 0 to group by the first column
   pivotTableParams.rows = [{
-    sourceColumnOffset: 2,
+    sourceColumnOffset: 4,
     sortOrder: "ASCENDING"
   }];
   
@@ -222,8 +242,8 @@ function createPivotTable() {
   };
 
   Sheets.Spreadsheets.batchUpdate({'requests': [request]}, ss.getId());
-  ss.getRange('E1').setValue('CPO');
-  ss.getRange('E2').activate().setFormula('=if(D2>0,C2/D2,0)');
+  ss.getRange('E1').setValue('CVR');
+  ss.getRange('E2').activate().setFormula('=if(B2>0,D2/B2,0)');
   ss.getActiveRange().autoFillToNeighbor(SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
   ss.getRange('E:E').setNumberFormat('#,##0.00');
   scatter_plot();
@@ -250,14 +270,14 @@ function scatter_plot() {
   .setOption('curveType', 'none')
   .setOption('legend.position', 'right')
   .setOption('domainAxis.direction', 1)
-  .setOption('title', 'CPS distribution')
+  .setOption('title', 'CVR distribution')
   .setOption('treatLabelsAsText', false)
   .setXAxisTitle('Clicks')
   .setOption('series.0.hasAnnotations', true)
   .setOption('series.0.dataLabel', 'custom')
   .setOption('series.0.pointSize', 7)
-  .setOption('series.0.labelInLegend', 'CPS')
-  .setOption('vAxes.0.viewWindow.max', max_cpo * 1.2)
+  .setOption('series.0.labelInLegend', 'CVR')
+  .setOption('vAxes.0.viewWindow.max', 1.2)
   .setPosition(1, 1, 57, 104)
   .build();
   data.insertChart(chart);
@@ -495,3 +515,5 @@ function catOther(){
   }
 
 }
+
+
